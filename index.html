@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Sopa con Pistas</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800;900&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; user-select: none; }
+html, body { height: 100%; font-family: 'Nunito', sans-serif; background: #1a0a3a; color: #fff; }
+
+/* HOME */
+#home {
+  height: 100%; overflow-y: auto;
+  background: radial-gradient(ellipse at 50% 30%, #3a1080 0%, #1a0a3a 70%);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 20px; padding: 28px 20px;
+}
+.home-emoji { font-size: 4rem; text-align: center; animation: float 2s ease-in-out infinite alternate; }
+@keyframes float { from{transform:translateY(0)} to{transform:translateY(-12px)} }
+.home-title {
+  font-family: 'Baloo 2', cursive; font-size: 2.6rem; font-weight: 900; text-align: center;
+  background: linear-gradient(135deg,#ffd700,#ff8c00); -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+}
+.home-sub { color:#a090d0; font-size:0.88rem; letter-spacing:2px; text-transform:uppercase; text-align:center; }
+.home-badge { background:linear-gradient(135deg,#ff4466,#cc0033); color:white; font-size:0.75rem; font-weight:800; padding:4px 12px; border-radius:20px; }
+.rounds-list { display:grid; grid-template-columns:1fr 1fr; gap:12px; width:100%; max-width:400px; }
+.round-btn {
+  background:linear-gradient(135deg,#2a1060,#3a1880); border:2px solid #5a30d055; border-radius:16px;
+  padding:16px 12px; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:8px; cursor:pointer; transition:transform 0.15s; text-align:center; min-height:110px;
+}
+.round-btn:active { transform:scale(0.96); border-color:#ffd700; }
+.round-icon { font-size:2.2rem; }
+.round-name { font-weight:800; font-size:0.95rem; }
+.round-desc { font-size:0.65rem; color:#a090d0; }
+.round-stars { font-size:0.85rem; }
+.more-banner {
+  background:#2a1060; border:1px solid #5a30d044; border-radius:14px;
+  padding:12px 16px; display:flex; align-items:center; gap:12px; width:100%; max-width:360px; cursor:pointer;
+}
+
+/* GAME */
+#game {
+  display:none; flex-direction:column; height:100%;
+  background:radial-gradient(ellipse at 50% 0%, #3a1080 0%, #1a0a3a 60%);
+}
+.top-bar {
+  flex-shrink:0; background:linear-gradient(180deg,#cc2200,#aa1800);
+  padding:10px 14px; display:flex; align-items:center; justify-content:space-between;
+  border-bottom:3px solid #ff5533;
+}
+.back-btn {
+  background:#00aa44; border:none; border-radius:50%; width:38px; height:38px;
+  font-size:1rem; cursor:pointer; color:white; font-weight:900;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.round-title-bar { font-family:'Baloo 2',cursive; font-weight:900; font-size:1.05rem; color:#ffd700; text-align:center; flex:1; }
+.score-pill {
+  background:#1a0a60; border:2px solid #5533cc; border-radius:20px;
+  padding:4px 12px; display:flex; align-items:center; gap:5px;
+  font-family:'Baloo 2',cursive; font-weight:700; font-size:0.95rem; flex-shrink:0;
+}
+.progress-wrap { flex-shrink:0; padding:4px 14px; }
+.progress-track { background:#2a1060; border-radius:10px; height:6px; overflow:hidden; }
+.progress-fill { height:100%; background:linear-gradient(90deg,#ffd700,#ff8c00); border-radius:10px; transition:width 0.4s; width:0%; }
+
+/* PANEL PISTA */
+.clue-panel {
+  flex-shrink:0; background:#1e0c50; border-bottom:2px solid #3a1880; padding:10px 14px;
+}
+.letters-row {
+  display:flex; align-items:flex-start; gap:8px; margin-top:6px;
+}
+.letters-col {
+  flex:1; min-width:0;
+}
+.letters-arrow {
+  color:#ffd700; font-size:1.4rem; padding-top:18px; flex-shrink:0;
+}
+.clue-top { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+.clue-number {
+  background:#ffd700; color:#1a0a3a; font-family:'Baloo 2',cursive; font-weight:900; font-size:1.2rem;
+  width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.clue-text { font-size:1rem; font-weight:700; color:#fff; line-height:1.3; flex:1; }
+
+/* FICHAS DESORDENADAS */
+.shuffle-area {
+  display:flex; gap:5px; flex-wrap:wrap; min-height:44px; align-items:flex-start; padding-top:2px;
+}
+.ficha {
+  width:40px; height:44px; border-radius:8px;
+  background:#5533cc; border:2px solid #a080ff;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Baloo 2',cursive; font-weight:900; font-size:1.4rem; color:#fff;
+  cursor:grab; transition:all 0.15s; touch-action:none;
+}
+.ficha:active { transform:scale(1.15); background:#7755ee; border-color:#ffd700; }
+.ficha.dragging { opacity:0.4; transform:scale(0.9); }
+.ficha.used { opacity:0.25; pointer-events:none; }
+
+/* CELDAS DE ORDEN */
+.order-label { font-size:0.65rem; color:#a090d0; text-transform:uppercase; letter-spacing:1px; margin-bottom:5px; }
+.order-cells { display:flex; gap:5px; flex-wrap:wrap; min-height:44px; align-items:flex-start; padding-top:2px; }
+.ocell {
+  width:40px; height:44px; border-radius:8px;
+  background:#2a1060; border:2px dashed #5533cc;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Baloo 2',cursive; font-weight:900; font-size:1.4rem; color:#ffd700;
+  transition:all 0.15s; cursor:pointer;
+}
+.ocell.filled { background:#4422aa; border:2px solid #ffd700; }
+.ocell.correct-word { background:#43e07a !important; border-color:#22cc55 !important; color:#fff !important; animation:pop 0.4s ease; }
+.ocell.drop-over { background:#3a2080; border-color:#ffd700; transform:scale(1.1); }
+
+@keyframes pop { 0%{transform:scale(0.7)} 70%{transform:scale(1.2)} 100%{transform:scale(1)} }
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
+
+/* GRILLA */
+.grid-wrap {
+  flex:1; min-height:0; display:flex; align-items:center; justify-content:center;
+  padding:6px; touch-action:none;
+}
+#grid { display:inline-grid; gap:2px; }
+.gcell {
+  border-radius:7px; display:flex; align-items:center; justify-content:center;
+  font-family:'Baloo 2',cursive; font-weight:800;
+  background:#2a1060; border:2px solid #3a1880; color:#d0c0ff;
+  transition:all 0.12s; cursor:pointer;
+}
+.gcell.selecting  { background:#ffd700; color:#1a0a3a; border-color:#ffaa00; transform:scale(1.08); z-index:2; }
+.gcell.clicked    { background:#ff8c00; color:#fff; border-color:#ffd700; transform:scale(1.1); }
+.gcell.wrong      { background:#cc2244; color:#fff; border-color:#ff4466; animation:shake 0.35s ease; }
+.gcell.found-0    { background:#43e07a; color:#fff; border-color:#22cc55; }
+.gcell.found-1    { background:#4cc9f0; color:#1a0a3a; border-color:#00aadd; }
+.gcell.found-2    { background:#f9c74f; color:#1a0a3a; border-color:#e0a800; }
+.gcell.found-3    { background:#f8961e; color:#fff; border-color:#cc6600; }
+.gcell.found-4    { background:#b5179e; color:#fff; border-color:#8a0077; }
+.gcell.found-5    { background:#ff6b6b; color:#fff; border-color:#cc3333; }
+.gcell.hint-start { background:#ff8c00 !important; border-color:#ffd700 !important; color:#fff !important; animation: pulse2 0.6s ease infinite alternate; }
+.gcell.hint-dir   { background:#ff8c0088 !important; border-color:#ff8c0066 !important; color:#fff !important; }
+.gcell.hint-full  { background:#888 !important; border-color:#666 !important; color:#fff !important; }
+@keyframes pulse2 { from{transform:scale(1);box-shadow:0 0 0 0 #ff8c0066} to{transform:scale(1.12);box-shadow:0 0 8px 4px #ff8c0033} }
+
+/* PALABRAS ENCONTRADAS */
+.found-panel { flex-shrink:0; padding:5px 12px 8px; background:#0f0625; border-top:1px solid #3a1880; }
+.found-label { font-size:0.65rem; color:#a090d0; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px; }
+.found-chips { display:flex; flex-wrap:wrap; gap:5px; }
+.found-chip {
+  padding:3px 10px; border-radius:20px; font-size:0.78rem; font-weight:800;
+  opacity:0; transform:scale(0.7); transition:all 0.3s;
+}
+.found-chip.visible { opacity:1; transform:scale(1); }
+
+/* WIN */
+#win {
+  display:none; flex-direction:column; height:100%; overflow-y:auto;
+  background:radial-gradient(ellipse at 50% 40%, #1a4a1a 0%, #1a0a3a 70%);
+  align-items:center; justify-content:center; gap:18px; padding:28px 20px; text-align:center;
+}
+.win-emoji { font-size:5rem; animation:float 1s ease-in-out infinite alternate; }
+.win-title { font-family:'Baloo 2',cursive; font-size:2.4rem; font-weight:900; color:#ffd700; }
+.win-words { display:flex; flex-wrap:wrap; justify-content:center; gap:6px; }
+.win-word { padding:6px 14px; border-radius:20px; font-family:'Baloo 2',cursive; font-size:1rem; font-weight:800; }
+.win-stats { display:flex; gap:24px; background:#2a1060; border-radius:14px; padding:14px 24px; border:1px solid #5a30d0; }
+.ws-val { font-family:'Baloo 2',cursive; font-size:2rem; color:#ffd700; }
+.ws-lbl { font-size:0.75rem; color:#a090d0; }
+.btn-gold {
+  background:linear-gradient(135deg,#ffd700,#ff8c00); color:#1a0a3a; border:none;
+  padding:15px 0; border-radius:50px; font-family:'Baloo 2',cursive; font-size:1.15rem;
+  font-weight:900; cursor:pointer; width:100%; max-width:300px; box-shadow:0 4px 0 #cc7700;
+}
+.btn-ghost {
+  background:transparent; color:#a090d0; border:2px solid #3a1880;
+  padding:12px 0; border-radius:50px; font-family:'Nunito',sans-serif;
+  font-weight:700; font-size:0.92rem; cursor:pointer; width:100%; max-width:300px;
+}
+</style>
+</head>
+<body>
+
+<!-- HOME -->
+<div id="home">
+  <span class="home-emoji">🔍</span>
+  <div><div class="home-title">Sopa con Pistas</div><div class="home-sub">Adivina y encuentra</div></div>
+  <div class="home-badge">🆕 MECÁNICA ÚNICA</div>
+  <div class="rounds-list" id="cats-list">
+    <div class="round-btn" onclick="loadRound(0)"><span class="round-icon">🇨🇱</span><div class="round-name">Chile</div><div class="round-stars">⭐⭐⭐</div></div>
+    <div class="round-btn" onclick="loadRound(1)"><span class="round-icon">🐾</span><div class="round-name">Animales</div><div class="round-stars">⭐⭐⭐</div></div>
+    <div class="round-btn" onclick="loadRound(2)"><span class="round-icon">🔬</span><div class="round-name">Ciencia</div><div class="round-stars">⭐⭐⭐</div></div>
+    <div class="round-btn" onclick="loadRound(3)"><span class="round-icon">🏛️</span><div class="round-name">Historia</div><div class="round-stars">⭐⭐⭐</div></div>
+    <div class="round-btn" onclick="loadRound(4)"><span class="round-icon">🎬</span><div class="round-name">Películas</div><div class="round-stars">⭐⭐⭐</div></div>
+    <div class="round-btn" onclick="loadRound(5)"><span class="round-icon">🎵</span><div class="round-name">Música</div><div class="round-stars">⭐⭐⭐</div></div>
+    <div class="round-btn" onclick="loadRound(6)"><span class="round-icon">💻</span><div class="round-name">Tecnología</div><div class="round-stars">⭐⭐⭐</div></div>
+    <div class="round-btn" onclick="loadRound(7)" style="border-color:#ff4466"><span class="round-icon">🗣️</span><div class="round-name">Chilenismos</div><div class="round-stars">⭐⭐⭐</div></div>
+  </div>
+  <div class="more-banner" onclick="alert('¡Más juegos del creador!')">
+    <span style="font-size:1.8rem">🧩</span>
+    <div style="margin-left:4px"><div style="font-weight:800;font-size:0.9rem">Más juegos del creador</div><div style="font-size:0.72rem;color:#a090d0">Ahorcado · Crucigrama · Sopa de Letras</div></div>
+    <div style="margin-left:auto;color:#a090d0;font-size:1.2rem">›</div>
+  </div>
+</div>
+
+<!-- GAME -->
+<div id="game">
+  <div class="top-bar">
+    <button class="back-btn" onclick="goHome()">◀</button>
+    <div class="round-title-bar" id="round-title">Chile Total</div>
+    <button id="hint-btn" onclick="useHint()" style="background:linear-gradient(135deg,#ff8c00,#cc5500);border:none;border-radius:20px;padding:6px 12px;color:#fff;font-family:'Baloo 2',cursive;font-weight:800;font-size:0.85rem;cursor:pointer;display:flex;align-items:center;gap:4px;flex-shrink:0;">
+      💡 <span id="hint-label">Ayuda</span>
+    </button>
+    <div class="score-pill">⭐ <span id="score-val">0</span></div>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-track"><div class="progress-fill" id="prog"></div></div>
+  </div>
+
+  <!-- PANEL PISTA -->
+  <div class="clue-panel">
+    <div class="clue-top">
+      <div class="clue-number" id="clue-num">1</div>
+      <div class="clue-text" id="clue-text">Pista aquí</div>
+    </div>
+    <!-- Fichas + celdas lado a lado -->
+    <div class="letters-row">
+      <div class="letters-col">
+        <div class="order-label">Desordenadas</div>
+        <div class="shuffle-area" id="shuffle-area"></div>
+      </div>
+      <div class="letters-arrow">→</div>
+      <div class="letters-col">
+        <div class="order-label">Ordenar (opcional)</div>
+        <div class="order-cells" id="order-cells"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GRILLA -->
+  <div class="grid-wrap">
+    <div id="grid"></div>
+  </div>
+
+  <!-- ENCONTRADAS -->
+  <div class="found-panel">
+    <div class="found-label">Palabras encontradas</div>
+    <div class="found-chips" id="found-chips"></div>
+  </div>
+</div>
+
+<!-- WIN -->
+<div id="win">
+  <div class="win-emoji">🎉</div>
+  <div class="win-title">¡Completado!</div>
+  <div class="win-words" id="win-words"></div>
+  <div class="win-stats">
+    <div><div class="ws-val" id="win-pts">0</div><div class="ws-lbl">Puntos</div></div>
+    <div><div class="ws-val" id="win-cnt">6</div><div class="ws-lbl">Palabras</div></div>
+  </div>
+  <button class="btn-gold" onclick="loadRound(rIdx)">Jugar de nuevo</button>
+  <button class="btn-ghost" onclick="goHome()">Ver todas las rondas</button>
+</div>
+
+<script>
+const WORD_DB = {
+  chile: [
+    {w:'CUECA', c:'Baile nacional de Chile con pañuelo'},
+    {w:'HUASO', c:'Jinete y campesino típico del campo chileno'},
+    {w:'CONDOR', c:'Ave rapaz símbolo nacional de Chile'},
+    {w:'EMPANADA', c:'Masa rellena típica de la cocina chilena'},
+    {w:'ATACAMA', c:'Desierto más árido del mundo en el norte de Chile'},
+    {w:'POLOLO', c:'Novio o pareja en el habla chilena'},
+    {w:'FOME', c:'Aburrido o sin gracia en Chile'},
+    {w:'CAHUIN', c:'Chisme o lío entre personas en Chile'},
+    {w:'ONCE', c:'Merienda chilena con té y pan en la tarde'},
+    {w:'ALTIRO', c:'Inmediatamente en el habla chilena'},
+    {w:'BACAN', c:'Algo muy bueno o genial en Chile'},
+    {w:'CUATICO', c:'Algo raro o exagerado en Chile'},
+    {w:'CHELA', c:'Cerveza en el habla coloquial chilena'},
+    {w:'TACO', c:'Atasco de tráfico en Santiago'},
+    {w:'SOPAIPILLA', c:'Masa frita chilena típica de días de lluvia'},
+    {w:'POLOLEAR', c:'Tener pareja o enamorarse en Chile'},
+    {w:'CALUGA', c:'Caramelo blando muy popular en Chile'},
+    {w:'MOTE', c:'Grano de trigo cocido típico chileno'},
+    {w:'CAZUELA', c:'Sopa chilena con carne y verduras'},
+    {w:'CHARQUICAN', c:'Guiso chileno de papas y carne seca'},
+    {w:'VOLANTIN', c:'Cometa que se vuela en días de viento en Chile'},
+    {w:'DIECIOCHO', c:'Fiestas patrias chilenas en septiembre'},
+    {w:'LUCA', c:'Billete de mil pesos chilenos'},
+    {w:'COPIHUE', c:'Flor nacional de Chile de color rojo'},
+    {w:'VALPARAISO', c:'Ciudad portuaria patrimonio de la humanidad en Chile'},
+    {w:'OHIGGINS', c:'Libertador y primer director supremo de Chile'},
+    {w:'MAPUCHE', c:'Principal pueblo originario de Chile'},
+    {w:'AYMARA', c:'Pueblo originario del norte de Chile'},
+    {w:'CHILOTE', c:'Persona originaria de Chiloé'},
+    {w:'PALAFITO', c:'Casa construida sobre el agua en Chiloé'},
+    {w:'CURANTO', c:'Plato típico de Chiloé cocinado bajo tierra'},
+    {w:'MILCAO', c:'Pan de papa típico de Chiloé'},
+    {w:'ANTOFAGASTA', c:'Ciudad del norte de Chile conocida como la perla del norte'},
+    {w:'IQUIQUE', c:'Ciudad costera del norte famosa por su zona franca'},
+    {w:'ARICA', c:'Ciudad más al norte de Chile'},
+    {w:'TEMUCO', c:'Capital de la Araucanía corazón del pueblo mapuche'},
+    {w:'OSORNO', c:'Ciudad del sur conocida por su volcán nevado'},
+    {w:'PATAGONIA', c:'Zona austral de Chile de paisajes espectaculares'},
+    {w:'PISCO', c:'Bebida destilada de uva típica del norte de Chile'},
+    {w:'TERREMOTO', c:'Trago chileno de vino blanco con helado de piña'},
+    {w:'BORGONA', c:'Trago chileno de vino tinto con frutillas'},
+    {w:'CARMENERE', c:'Uva tinta característica de los vinos chilenos'},
+    {w:'VIOLETAPARRA', c:'Cantautora chilena creadora de Gracias a la vida'},
+    {w:'CONDORITO', c:'Personaje chileno de historieta creado por Pepo'},
+    {w:'NERUDA', c:'Premio Nobel de Literatura chileno poeta del amor'},
+    {w:'MISTRAL', c:'Primera latinoamericana en ganar el Nobel de Literatura'},
+    {w:'ALLENDE', c:'Presidente chileno derrocado en el golpe de 1973'},
+    {w:'HUEMUL', c:'Ciervo del sur de Chile en el escudo nacional'},
+    {w:'PUDU', c:'Ciervo más pequeño del mundo que habita en Chile'},
+    {w:'VICUNA', c:'Camélido andino de fino pelaje que habita en Chile'},
+    {w:'GUANACO', c:'Camélido salvaje que habita en la Patagonia chilena'},
+    {w:'PICAFLOR', c:'Colibrí muy común en los jardines chilenos'},
+    {w:'TENCA', c:'Ave chilena famosa por imitar sonidos'},
+    {w:'QUELTEHUE', c:'Ave chilena con cresta y patas rojas'},
+    {w:'PELICANO', c:'Ave marina grande muy común en las costas chilenas'},
+    {w:'CONGRIO', c:'Pez típico de la cocina chilena base de sopas'},
+    {w:'REINETA', c:'Pez plano muy consumido en Chile'},
+    {w:'CORVINA', c:'Pez marino apreciado en la gastronomía chilena'},
+    {w:'MERLUZA', c:'Pez blanco base de la dieta costera chilena'},
+    {w:'LOCO', c:'Molusco marino muy apreciado en la cocina chilena'},
+    {w:'ERIZO', c:'Equinodermo marino muy consumido en el norte de Chile'},
+    {w:'CHOLGA', c:'Mejillón silvestre de las costas chilenas'},
+    {w:'CHORO', c:'Mejillón chileno de gran tamaño'},
+  ],
+  animales: [
+    {w:'PERRO', c:'Animal doméstico fiel compañero del ser humano'},
+    {w:'GATO', c:'Felino doméstico independiente y cazador'},
+    {w:'TIGRE', c:'Felino rayado más grande del mundo'},
+    {w:'LEON', c:'Rey de la selva con majestuosa melena'},
+    {w:'ELEFANTE', c:'Mamífero terrestre más grande del mundo'},
+    {w:'OSO', c:'Mamífero omnívoro que hiberna en invierno'},
+    {w:'LOBO', c:'Cánido salvaje que caza en manada'},
+    {w:'AGUILA', c:'Ave rapaz de gran envergadura y visión aguda'},
+    {w:'SERPIENTE', c:'Reptil sin patas que se desplaza reptando'},
+    {w:'DELFIN', c:'Mamífero marino muy inteligente y sociable'},
+    {w:'BALLENA', c:'Mamífero marino más grande del planeta'},
+    {w:'TIBURON', c:'Pez predador con dientes afilados'},
+    {w:'PULPO', c:'Molusco marino de ocho tentáculos inteligente'},
+    {w:'TORTUGA', c:'Reptil con caparazón de larga vida'},
+    {w:'COCODRILO', c:'Reptil acuático de mandíbula poderosa'},
+    {w:'CAMALEON', c:'Reptil que cambia de color según su entorno'},
+    {w:'GORILA', c:'Primate más grande y fuerte de la selva africana'},
+    {w:'CHIMPANCE', c:'Primate africano genéticamente cercano al humano'},
+    {w:'ORANGUTAN', c:'Primate asiático de color naranja y gran inteligencia'},
+    {w:'PANDA', c:'Oso blanco y negro que come bambú en China'},
+    {w:'KOALA', c:'Marsupial australiano que duerme en eucaliptos'},
+    {w:'CANGURO', c:'Marsupial australiano que salta y carga a su cría'},
+    {w:'ORNITORRINCO', c:'Mamífero australiano con pico de pato que pone huevos'},
+    {w:'HIPOPOTAMO', c:'Mamífero semiacuático africano de gran tamaño'},
+    {w:'RINOCERONTE', c:'Mamífero africano con cuerno en el hocico'},
+    {w:'JIRAFA', c:'Mamífero más alto del mundo con cuello largo'},
+    {w:'CEBRA', c:'Mamífero africano con rayas blancas y negras'},
+    {w:'PINGUINO', c:'Ave marina que no vuela y vive en el frío'},
+    {w:'FLAMENCO', c:'Ave rosada que se para en una sola pata'},
+    {w:'TUCAN', c:'Ave tropical con pico enorme y colorido'},
+    {w:'LORO', c:'Ave tropical que imita la voz humana'},
+    {w:'COLIBRI', c:'Ave más pequeña que puede volar hacia atrás'},
+    {w:'HALCON', c:'Ave rapaz más veloz del mundo en picada'},
+    {w:'BUHO', c:'Ave nocturna que gira la cabeza casi completamente'},
+    {w:'MURCIELAGO', c:'Único mamífero capaz de volar'},
+    {w:'CASTOR', c:'Mamífero que construye represas en los ríos'},
+    {w:'NUTRIA', c:'Mamífero semiacuático juguetón y nadador'},
+    {w:'FOCA', c:'Mamífero marino de aletas que vive en el frío'},
+    {w:'MORSA', c:'Mamífero marino ártico con grandes colmillos'},
+    {w:'MANATI', c:'Mamífero marino herbívoro llamado vaca de mar'},
+    {w:'CABALLO', c:'Mamífero doméstico usado para montar y trabajar'},
+    {w:'VACA', c:'Mamífero doméstico que produce leche'},
+    {w:'CERDO', c:'Mamífero doméstico omnívoro muy inteligente'},
+    {w:'OVEJA', c:'Mamífero doméstico que produce lana'},
+    {w:'LLAMA', c:'Camélido andino usado como animal de carga'},
+    {w:'ALPACA', c:'Camélido andino criado por su fina lana'},
+    {w:'CAMELLO', c:'Mamífero del desierto con joroba de reserva grasa'},
+    {w:'CIERVO', c:'Mamífero con cuernos ramificados que muda cada año'},
+    {w:'ALCE', c:'Ciervo más grande del mundo de América del Norte'},
+    {w:'RENO', c:'Ciervo ártico que arrastra el trineo de Papá Noel'},
+    {w:'ZORRO', c:'Cánido astuto de orejas grandes y rabo esponjoso'},
+    {w:'HIENA', c:'Mamífero carroñero africano de risa característica'},
+    {w:'GUEPARDO', c:'Felino más veloz del mundo'},
+    {w:'LEOPARDO', c:'Felino manchado de gran agilidad nocturna'},
+    {w:'PUMA', c:'Felino grande de América también llamado león de montaña'},
+    {w:'JAGUAR', c:'Felino más grande de América de manchas rosetas'},
+    {w:'MANGOSTA', c:'Mamífero ágil famoso por cazar cobras'},
+    {w:'MAPACHE', c:'Mamífero norteamericano con máscara oscura'},
+    {w:'ARMADILLO', c:'Mamífero acorazado que se enrolla como pelota'},
+    {w:'PEREZOSO', c:'Mamífero arborícola más lento del mundo'},
+    {w:'TAPIR', c:'Mamífero de hocico largo suramericano'},
+    {w:'CAPIBARA', c:'Roedor más grande del mundo vive en Sudamérica'},
+    {w:'ARDILLA', c:'Roedor trepador que guarda nueces para el invierno'},
+    {w:'CONEJO', c:'Mamífero de largas orejas que vive en madrigueras'},
+    {w:'CUERVO', c:'Ave negra muy inteligente considerada de mal augurio'},
+    {w:'GOLONDRINA', c:'Ave migratoria que anuncia la llegada del verano'},
+    {w:'CIGUENA', c:'Ave migrante que trae a los bebés según la leyenda'},
+    {w:'SALMON', c:'Pez que nada contra la corriente para reproducirse'},
+    {w:'PIRANA', c:'Pez carnívoro de dientes afilados del Amazonas'},
+    {w:'RAYA', c:'Pez plano que vive en el fondo del mar'},
+  ],
+  ciencia: [
+    {w:'FOTOSINTESIS', c:'Proceso por el que las plantas convierten luz en energía'},
+    {w:'GRAVEDAD', c:'Fuerza que atrae los cuerpos hacia el centro de la Tierra'},
+    {w:'CROMOSOMA', c:'Estructura celular que contiene el ADN'},
+    {w:'VOLCAN', c:'Abertura en la corteza terrestre que expulsa magma'},
+    {w:'TSUNAMI', c:'Ola gigante causada por un terremoto submarino'},
+    {w:'ECLIPSE', c:'Fenómeno en que un astro oculta a otro'},
+    {w:'NEUTRON', c:'Partícula sin carga del núcleo atómico'},
+    {w:'METEORITO', c:'Roca espacial que impacta la superficie terrestre'},
+    {w:'HIBERNACION', c:'Estado de sueño profundo de algunos animales en invierno'},
+    {w:'TERREMOTO', c:'Vibración de la corteza terrestre'},
+    {w:'CELULA', c:'Unidad básica de los seres vivos'},
+    {w:'BACTERIA', c:'Microorganismo unicelular sin núcleo definido'},
+    {w:'VIRUS', c:'Agente infeccioso más pequeño que una bacteria'},
+    {w:'PROTEINA', c:'Molécula formada por aminoácidos esencial para la vida'},
+    {w:'NEURONA', c:'Célula del sistema nervioso que transmite señales'},
+    {w:'FOTON', c:'Partícula de luz sin masa en reposo'},
+    {w:'ELECTRON', c:'Partícula con carga negativa que orbita el núcleo'},
+    {w:'PROTON', c:'Partícula con carga positiva en el núcleo atómico'},
+    {w:'ATOMO', c:'Unidad más pequeña de un elemento químico'},
+    {w:'OXIGENO', c:'Gas esencial para la respiración de los seres vivos'},
+    {w:'HIDROGENO', c:'Elemento más abundante del universo'},
+    {w:'CARBONO', c:'Elemento base de la química orgánica y la vida'},
+    {w:'NITROGENO', c:'Gas que forma el 78 por ciento de la atmósfera'},
+    {w:'OSMOSIS', c:'Paso de agua a través de una membrana semipermeable'},
+    {w:'MITOSIS', c:'División celular que produce dos células idénticas'},
+    {w:'MEIOSIS', c:'División celular que produce células sexuales'},
+    {w:'EVOLUCION', c:'Cambio gradual de las especies a lo largo del tiempo'},
+    {w:'ECOSISTEMA', c:'Conjunto de seres vivos y su entorno que interactúan'},
+    {w:'NEBULOSA', c:'Nube de gas y polvo interestelar'},
+    {w:'GALAXIA', c:'Sistema de miles de millones de estrellas'},
+    {w:'SUPERNOVA', c:'Explosión masiva al final de vida de una estrella'},
+    {w:'MATERIA', c:'Todo lo que tiene masa y ocupa espacio'},
+    {w:'ENERGIA', c:'Capacidad de realizar trabajo o producir cambios'},
+    {w:'RELATIVIDAD', c:'Teoría de Einstein sobre espacio tiempo y gravedad'},
+    {w:'ENTROPIA', c:'Medida del desorden en un sistema físico'},
+    {w:'MAGNETISMO', c:'Propiedad de atraer o repeler ciertos materiales'},
+    {w:'ELECTRICIDAD', c:'Flujo de cargas eléctricas a través de un conductor'},
+    {w:'NUCLEAR', c:'Energía liberada al dividir o fusionar núcleos atómicos'},
+    {w:'ACIDO', c:'Sustancia que libera iones de hidrógeno en solución'},
+    {w:'CRISTAL', c:'Sólido con estructura atómica ordenada y repetitiva'},
+    {w:'POLIMERO', c:'Molécula grande formada por unidades repetidas'},
+    {w:'SILICIO', c:'Semiconductor base de los chips electrónicos'},
+    {w:'DIAMANTE', c:'Forma más dura del carbono usada en joyería'},
+    {w:'GRAFENO', c:'Material bidimensional de carbono ultra resistente'},
+    {w:'VACUNA', c:'Preparado que estimula el sistema inmune contra enfermedades'},
+    {w:'ANTIBIOTICO', c:'Sustancia que destruye o inhibe el crecimiento bacteriano'},
+    {w:'MICROSCOPIO', c:'Instrumento para observar objetos muy pequeños'},
+    {w:'TELESCOPIO', c:'Instrumento para observar objetos muy lejanos'},
+    {w:'LASER', c:'Luz amplificada coherente y concentrada'},
+    {w:'SATELITE', c:'Objeto que orbita alrededor de un planeta'},
+    {w:'ASTEROIDE', c:'Roca pequeña que orbita el Sol'},
+    {w:'COMETA', c:'Cuerpo celeste con núcleo de hielo y cola luminosa'},
+    {w:'FOTOSFERA', c:'Capa exterior visible del Sol'},
+    {w:'AGUJERO', c:'Región del espacio con gravedad que atrapa todo'},
+    {w:'PULSAR', c:'Estrella de neutrones que emite pulsos regulares'},
+    {w:'QUASAR', c:'Objeto celeste muy luminoso y lejano'},
+    {w:'CATALISIS', c:'Aceleración de una reacción química por un catalizador'},
+    {w:'OXIDACION', c:'Reacción química que implica pérdida de electrones'},
+    {w:'FUSION', c:'Proceso que une núcleos atómicos liberando energía'},
+    {w:'FISION', c:'Proceso que divide núcleos atómicos liberando energía'},
+    {w:'ISOTOPO', c:'Variante de un elemento con diferente número de neutrones'},
+    {w:'CRISPR', c:'Herramienta de edición genética revolucionaria'},
+    {w:'CLON', c:'Copia genéticamente idéntica de un organismo'},
+    {w:'HOLOGRAFIA', c:'Técnica de imagen tridimensional con luz láser'},
+    {w:'RESONANCIA', c:'Técnica de imagen médica que usa campos magnéticos'},
+    {w:'ULTRASONIDO', c:'Técnica diagnóstica que usa ondas sonoras'},
+  ],
+  historia: [
+    {w:'EGIPTO', c:'Civilización de las pirámides y el río Nilo'},
+    {w:'NAPOLEON', c:'Emperador francés exiliado en Santa Elena'},
+    {w:'REVOLUCION', c:'Francia 1789 libertad igualdad fraternidad'},
+    {w:'VIKINGOS', c:'Navegantes nórdicos que llegaron a América'},
+    {w:'HIROSHIMA', c:'Ciudad japonesa bombardeada en 1945'},
+    {w:'MESOPOTAMIA', c:'Primera civilización entre el Tigris y Éufrates'},
+    {w:'ALEJANDRO', c:'Rey macedonio que conquistó Persia'},
+    {w:'ROMA', c:'Imperio que dominó el mundo mediterráneo antiguo'},
+    {w:'GRECIA', c:'Cuna de la democracia la filosofía y los Juegos Olímpicos'},
+    {w:'ATENAS', c:'Ciudad estado griega cuna de la democracia'},
+    {w:'ESPARTA', c:'Ciudad estado griega conocida por sus guerreros'},
+    {w:'MONGOL', c:'Imperio que conquistó la mayor extensión territorial'},
+    {w:'OTOMANO', c:'Imperio islámico que dominó tres continentes'},
+    {w:'AZTECA', c:'Civilización mesoamericana con capital en Tenochtitlán'},
+    {w:'INCA', c:'Civilización andina con capital en Cusco'},
+    {w:'MAYA', c:'Civilización mesoamericana con avanzado calendario'},
+    {w:'COLONIZACION', c:'Proceso de dominio europeo sobre América'},
+    {w:'CRUZADAS', c:'Guerras religiosas medievales por Tierra Santa'},
+    {w:'FEUDALISMO', c:'Sistema político medieval basado en el feudo'},
+    {w:'RENACIMIENTO', c:'Movimiento cultural europeo de los siglos XV y XVI'},
+    {w:'ILUSTRACION', c:'Movimiento filosófico europeo del siglo XVIII'},
+    {w:'NAZISMO', c:'Ideología totalitaria que gobernó Alemania entre 1933 y 1945'},
+    {w:'FASCISMO', c:'Ideología autoritaria surgida en Italia en el siglo XX'},
+    {w:'COMUNISMO', c:'Sistema donde los medios de producción son colectivos'},
+    {w:'HOLOCAUST', c:'Genocidio de judíos y otros grupos por el régimen nazi'},
+    {w:'APARTHEID', c:'Sistema de segregación racial en Sudáfrica'},
+    {w:'ESCLAVITUD', c:'Sistema que priva a personas de su libertad'},
+    {w:'ABOLICION', c:'Eliminación legal de la esclavitud'},
+    {w:'SUFRAGIO', c:'Derecho a votar en elecciones democráticas'},
+    {w:'CONSTITUCION', c:'Ley fundamental que organiza un Estado'},
+    {w:'REPUBLICA', c:'Sistema de gobierno sin monarquía hereditaria'},
+    {w:'DEMOCRACIA', c:'Sistema político donde el poder lo ejerce el pueblo'},
+    {w:'DICTADURA', c:'Sistema político donde el poder lo concentra una persona'},
+    {w:'GOLPE', c:'Toma del poder por la fuerza fuera del orden legal'},
+    {w:'EXILIO', c:'Expulsión o huida de alguien de su país'},
+    {w:'PLEBISCITO', c:'Consulta directa al pueblo sobre una decisión importante'},
+    {w:'TRATADO', c:'Acuerdo formal entre Estados soberanos'},
+    {w:'ALIANZA', c:'Unión entre países con fines comunes'},
+    {w:'DIPLOMACIA', c:'Arte de manejar relaciones entre países'},
+    {w:'SOBERANIA', c:'Poder supremo de un Estado sobre su territorio'},
+    {w:'MIGRACION', c:'Desplazamiento de personas de un lugar a otro'},
+    {w:'REFUGIADO', c:'Persona que huye de su país por persecución'},
+    {w:'PATRIMONIO', c:'Herencia cultural o natural de valor universal'},
+    {w:'ARQUEOLOGIA', c:'Ciencia que estudia las civilizaciones antiguas'},
+    {w:'CONQUISTA', c:'Proceso militar de dominar un territorio'},
+    {w:'RESISTENCIA', c:'Oposición activa al dominio extranjero'},
+    {w:'ARMISTICIO', c:'Acuerdo para cesar el fuego en una guerra'},
+    {w:'LIBERTADOR', c:'Persona que libera a un pueblo de la opresión'},
+    {w:'REFORMADOR', c:'Persona que introduce cambios importantes en la sociedad'},
+    {w:'HUMANISTA', c:'Pensador del Renacimiento que pone al hombre en el centro'},
+    {w:'BARROCO', c:'Estilo artístico del siglo XVII de gran ornamentación'},
+    {w:'COLISEO', c:'Anfiteatro romano donde luchaban gladiadores'},
+    {w:'GLADIADOR', c:'Combatiente que luchaba en el Coliseo romano'},
+    {w:'LEGION', c:'Unidad militar del ejército romano'},
+    {w:'SENADO', c:'Órgano legislativo de la antigua Roma'},
+    {w:'FARAON', c:'Gobernante supremo del antiguo Egipto'},
+    {w:'PIRAMIDE', c:'Monumento funerario del antiguo Egipto'},
+    {w:'ESFINGE', c:'Estatua con cuerpo de león y cabeza humana en Egipto'},
+    {w:'PAPIRO', c:'Material de escritura del antiguo Egipto'},
+    {w:'JEROGLIFICO', c:'Sistema de escritura del antiguo Egipto con imágenes'},
+    {w:'SAMURAI', c:'Guerrero de élite de la sociedad feudal japonesa'},
+    {w:'SHOGUN', c:'Comandante militar supremo del Japón feudal'},
+    {w:'NINJA', c:'Espía y asesino secreto de la sociedad feudal japonesa'},
+    {w:'VIKINGO', c:'Guerrero navegante del norte de Europa medieval'},
+    {w:'CRUZADO', c:'Guerrero cristiano que luchó en las Cruzadas'},
+    {w:'CABALLERO', c:'Guerrero noble del sistema feudal europeo'},
+    {w:'ESCUDERO', c:'Asistente y aprendiz de un caballero medieval'},
+    {w:'TROVADOR', c:'Poeta y músico de la Europa medieval'},
+  ],
+  peliculas: [
+    {w:'AVATAR', c:'Película de James Cameron en el planeta Pandora'},
+    {w:'TITANIC', c:'Barco que se hundió en el Atlántico Norte'},
+    {w:'MATRIX', c:'Neo descubre que la realidad es una simulación'},
+    {w:'INTERSTELLAR', c:'Astronautas viajan por un agujero de gusano'},
+    {w:'JOKER', c:'El villano más famoso de Ciudad Gótica'},
+    {w:'GLADIADOR', c:'General romano que lucha en el Coliseo'},
+    {w:'CONDORITO', c:'Personaje chileno de historieta adaptado al cine'},
+    {w:'RAPUNZEL', c:'Princesa con el cabello muy largo encerrada en una torre'},
+    {w:'INTENSAMENTE', c:'Película de Pixar sobre las emociones de una niña'},
+    {w:'COCO', c:'Niño mexicano que viaja al mundo de los muertos'},
+    {w:'NARUTO', c:'Joven ninja que quiere ser el Hokage de su aldea'},
+    {w:'FROZEN', c:'Princesa con poderes de hielo que busca a su hermana'},
+    {w:'MOANA', c:'Joven polinesiana que cruza el océano para salvar su isla'},
+    {w:'ENCANTO', c:'Familia colombiana con poderes mágicos en su casa'},
+    {w:'RATATOUILLE', c:'Rata que sueña con ser chef en París'},
+    {w:'WALLE', c:'Robot que limpia la Tierra abandonada por los humanos'},
+    {w:'SHREK', c:'Ogro verde que vive en un pantano con su burro'},
+    {w:'BAMBI', c:'Cervatillo que pierde a su madre en el bosque'},
+    {w:'PINOCHO', c:'Marioneta de madera que quiere convertirse en niño'},
+    {w:'CENICIENTA', c:'Joven que va al baile con un zapato de cristal'},
+    {w:'SIRENITA', c:'Sirena que sueña con vivir en el mundo de los humanos'},
+    {w:'BLANCANIEVES', c:'Princesa que huye de su madrastra y vive con siete enanos'},
+    {w:'ALADDIN', c:'Joven que encuentra una lámpara con un genio'},
+    {w:'MULAN', c:'Joven china que se disfraza de hombre para luchar'},
+    {w:'INCEPTION', c:'Robo de ideas a través de los sueños'},
+    {w:'OPPENHEIMER', c:'Padre de la bomba atómica y su dilema moral'},
+    {w:'BARBIE', c:'Icónica muñeca que sale al mundo real'},
+    {w:'DUNE', c:'Planeta desértico con especias que dominan el universo'},
+    {w:'BATMAN', c:'Millonario que combate el crimen disfrazado de murciélago'},
+    {w:'SUPERMAN', c:'Superhéroe con poderes del planeta Krypton'},
+    {w:'SPIDERMAN', c:'Joven picado por una araña radioactiva adquiere poderes'},
+    {w:'IRONMAN', c:'Millonario que crea una armadura tecnológica'},
+    {w:'THOR', c:'Dios nórdico del trueno con martillo mágico'},
+    {w:'HULK', c:'Científico que se transforma en monstruo verde'},
+    {w:'PANTERA', c:'Rey africano con traje tecnológico de vibranium'},
+    {w:'THANOS', c:'Villano que quiere eliminar la mitad del universo'},
+    {w:'ENDGAME', c:'Batalla final de los Vengadores contra Thanos'},
+    {w:'RAYA', c:'Guerrera que busca los fragmentos del dragón'},
+    {w:'LUCA', c:'Monstruo marino que se convierte en humano en Italia'},
+    {w:'MANDALORIAN', c:'Cazarrecompensas que protege a un bebé de su especie'},
+    {w:'PARASITE', c:'Familia pobre que se infiltra en una familia rica coreana'},
+    {w:'SOUL', c:'Músico de jazz que descubre el sentido de la vida'},
+    {w:'ZOOTOPIA', c:'Ciudad de animales donde un conejo quiere ser policía'},
+    {w:'BRAVE', c:'Princesa escocesa que convierte a su madre en oso'},
+    {w:'CARS', c:'Auto de carreras que aprende el valor de la amistad'},
+    {w:'BUGS', c:'Película de pixar sobre el mundo de los insectos'},
+    {w:'TOY', c:'Juguetes que cobran vida cuando los humanos no los ven'},
+    {w:'MONSTERS', c:'Monstruos que asustan a niños para generar energía'},
+  ],
+  musica: [
+    {w:'BEETHOVEN', c:'Compositor sordo autor de la Novena Sinfonía'},
+    {w:'REGGAETON', c:'Ritmo urbano latino con el ritmo dembow'},
+    {w:'CUMBIA', c:'Ritmo latinoamericano muy bailado en Chile'},
+    {w:'CUECA', c:'Baile y música nacional de Chile con pañuelo'},
+    {w:'VIOLETAPARRA', c:'Artista chilena creadora de Gracias a la vida'},
+    {w:'LUCYBELL', c:'Banda de rock chilena liderada por Claudia Pizarro'},
+    {w:'BOSSANOVA', c:'Ritmo brasileño mezcla de samba y jazz'},
+    {w:'FLAMENCO', c:'Baile y música típica española con guitarra y palmas'},
+    {w:'MOZART', c:'Niño prodigio austriaco que compuso desde los cinco años'},
+    {w:'BACH', c:'Compositor barroco alemán de fugas y corales'},
+    {w:'CHOPIN', c:'Compositor polaco del Romanticismo maestro del piano'},
+    {w:'WAGNER', c:'Compositor alemán de óperas épicas'},
+    {w:'VERDI', c:'Compositor italiano de óperas como Aida y La Traviata'},
+    {w:'VIVALDI', c:'Compositor barroco italiano de Las Cuatro Estaciones'},
+    {w:'DEBUSSY', c:'Compositor impresionista francés de Claire de Lune'},
+    {w:'RAVEL', c:'Compositor francés autor del famoso Bolero'},
+    {w:'JAZZ', c:'Género musical nacido en Nueva Orleans'},
+    {w:'BLUES', c:'Género musical afroamericano del sur de Estados Unidos'},
+    {w:'ROCK', c:'Género musical nacido en los años cincuenta'},
+    {w:'PUNK', c:'Movimiento musical rebelde de los años setenta'},
+    {w:'METAL', c:'Género musical de guitarras distorsionadas'},
+    {w:'HIPHOP', c:'Género musical urbano con rap y bases electrónicas'},
+    {w:'SOUL', c:'Género musical afroamericano de gran emotividad'},
+    {w:'DISCO', c:'Género musical de los años setenta muy popular'},
+    {w:'TECHNO', c:'Género de música electrónica nacido en Detroit'},
+    {w:'HOUSE', c:'Género de música electrónica nacido en Chicago'},
+    {w:'SALSA', c:'Ritmo tropical bailable de origen caribeño'},
+    {w:'MERENGUE', c:'Ritmo bailable originario de la República Dominicana'},
+    {w:'BACHATA', c:'Ritmo romántico originario de República Dominicana'},
+    {w:'TANGO', c:'Baile y música melancólica del Río de la Plata'},
+    {w:'SAMBA', c:'Ritmo brasileño base del carnaval de Río'},
+    {w:'REGGAE', c:'Música jamaicana asociada al movimiento rastafari'},
+    {w:'RUMBA', c:'Ritmo cubano de raíces africanas'},
+    {w:'MAMBO', c:'Ritmo cubano muy bailable de los años cuarenta'},
+    {w:'BOLERO', c:'Género musical romántico muy popular en Latinoamérica'},
+    {w:'RANCHERA', c:'Música tradicional mexicana de canciones campiranas'},
+    {w:'MARIACHI', c:'Conjunto musical tradicional mexicano con trompetas'},
+    {w:'VALLENATO', c:'Género musical colombiano con acordeón y caja'},
+    {w:'MARINERA', c:'Danza nacional del Perú con pañuelo'},
+    {w:'HUAYNO', c:'Música andina de Bolivia Perú y norte de Chile'},
+    {w:'FORRO', c:'Ritmo bailable del nordeste brasileño'},
+    {w:'CALIPSO', c:'Ritmo caribeño de Trinidad y Tobago'},
+    {w:'CANDOMBE', c:'Ritmo afrouruguayo tocado con tambores'},
+    {w:'OPERA', c:'Obra teatral cantada con orquesta sinfónica'},
+    {w:'SINFONIA', c:'Composición orquestal de gran envergadura'},
+    {w:'CONCIERTO', c:'Composición para instrumento solista y orquesta'},
+    {w:'SONATA', c:'Composición musical para uno o dos instrumentos'},
+    {w:'NOCTURNO', c:'Composición musical de carácter tranquilo y nocturno'},
+    {w:'VALS', c:'Baile europeo de tres tiempos muy elegante'},
+    {w:'POLKA', c:'Baile de origen checo muy popular en el siglo XIX'},
+    {w:'NUEVA', c:'Movimiento musical latinoamericano de protesta social'},
+    {w:'TROVA', c:'Canción poética latinoamericana de autor'},
+    {w:'INDIE', c:'Género musical independiente de producción alternativa'},
+    {w:'GRUNGE', c:'Subgénero del rock surgido en Seattle'},
+    {w:'GOSPEL', c:'Música religiosa cristiana afroamericana'},
+    {w:'CORO', c:'Agrupación vocal que canta en conjunto'},
+    {w:'FUGA', c:'Composición polifónica de gran complejidad técnica'},
+    {w:'PRELUDIO', c:'Pieza musical introductoria'},
+    {w:'MINUETO', c:'Danza cortesana europea del siglo XVII'},
+  ],
+  tecnologia: [
+    {w:'INTERNET', c:'Red mundial que conecta millones de computadores'},
+    {w:'CELULAR', c:'Teléfono portátil que funciona con señal inalámbrica'},
+    {w:'TABLET', c:'Dispositivo móvil con pantalla táctil sin teclado físico'},
+    {w:'ROBOT', c:'Máquina programada para realizar tareas automáticamente'},
+    {w:'BITCOIN', c:'Criptomoneda descentralizada creada en 2009'},
+    {w:'NUBE', c:'Almacenamiento de datos en servidores remotos'},
+    {w:'ANTIVIRUS', c:'Programa que protege el computador de malware'},
+    {w:'SERVIDOR', c:'Computador que provee servicios a otros en la red'},
+    {w:'ALGORITMO', c:'Conjunto de instrucciones para resolver un problema'},
+    {w:'PIXEL', c:'Unidad mínima de una imagen digital'},
+    {w:'BLOCKCHAIN', c:'Registro distribuido e inmutable de transacciones'},
+    {w:'WIFI', c:'Tecnología de conexión inalámbrica a internet'},
+    {w:'BLUETOOTH', c:'Tecnología de comunicación inalámbrica de corto alcance'},
+    {w:'GPS', c:'Sistema de posicionamiento global por satélite'},
+    {w:'DRONE', c:'Vehículo aéreo no tripulado controlado a distancia'},
+    {w:'TRANSISTOR', c:'Dispositivo semiconductor que amplifica señales'},
+    {w:'PROCESADOR', c:'Componente central que ejecuta instrucciones del sistema'},
+    {w:'MONITOR', c:'Pantalla que muestra la salida visual de un computador'},
+    {w:'TECLADO', c:'Dispositivo de entrada con teclas para escribir'},
+    {w:'ESCANER', c:'Dispositivo que digitaliza documentos físicos'},
+    {w:'CAMARA', c:'Dispositivo que captura imágenes o video digital'},
+    {w:'MICROFONO', c:'Dispositivo que convierte sonido en señal eléctrica'},
+    {w:'BATERIA', c:'Componente que almacena energía eléctrica'},
+    {w:'PROTOCOLO', c:'Conjunto de reglas para comunicación entre sistemas'},
+    {w:'NAVEGADOR', c:'Programa que permite acceder a páginas web'},
+    {w:'BUSCADOR', c:'Herramienta que indexa y encuentra información en la red'},
+    {w:'CORREO', c:'Sistema de mensajes electrónicos entre usuarios'},
+    {w:'STREAMING', c:'Transmisión de audio o video en tiempo real por internet'},
+    {w:'PODCAST', c:'Programa de audio disponible para descarga o escucha'},
+    {w:'BLOG', c:'Sitio web personal con entradas ordenadas cronológicamente'},
+    {w:'INFLUENCER', c:'Persona con gran audiencia en redes sociales'},
+    {w:'CONTRASENA', c:'Clave secreta para acceder a un sistema'},
+    {w:'ENCRIPTACION', c:'Proceso de codificar información para protegerla'},
+    {w:'HACKER', c:'Persona que explota vulnerabilidades en sistemas'},
+    {w:'MALWARE', c:'Software malicioso diseñado para dañar sistemas'},
+    {w:'FIREWALL', c:'Sistema de seguridad que filtra tráfico de red'},
+    {w:'VPN', c:'Red privada virtual que oculta la actividad en línea'},
+    {w:'LATENCIA', c:'Tiempo de demora en la transmisión de datos'},
+    {w:'DOMINIO', c:'Dirección única de un sitio web en internet'},
+    {w:'HOSTING', c:'Servicio de alojamiento de sitios web en servidores'},
+    {w:'STARTUP', c:'Empresa tecnológica emergente de alto crecimiento'},
+    {w:'AGILE', c:'Metodología de desarrollo de software iterativo'},
+    {w:'API', c:'Interfaz que permite comunicación entre aplicaciones'},
+    {w:'PYTHON', c:'Lenguaje de programación popular en ciencia de datos'},
+    {w:'JAVASCRIPT', c:'Lenguaje de programación para páginas web interactivas'},
+    {w:'JAVA', c:'Lenguaje de programación orientado a objetos multiplataforma'},
+    {w:'REACT', c:'Librería de JavaScript para interfaces de usuario'},
+    {w:'DOCKER', c:'Plataforma para crear y ejecutar contenedores de software'},
+    {w:'GIT', c:'Sistema de control de versiones de código fuente'},
+    {w:'LINUX', c:'Sistema operativo de código abierto basado en Unix'},
+    {w:'WINDOWS', c:'Sistema operativo de Microsoft para computadores'},
+    {w:'ANDROID', c:'Sistema operativo móvil de Google'},
+    {w:'IOS', c:'Sistema operativo móvil de Apple'},
+    {w:'INTELIGENCIA', c:'Sistema computacional que simula capacidades humanas'},
+    {w:'CHATBOT', c:'Programa que simula conversaciones con humanos'},
+    {w:'REALIDAD', c:'Tecnología que sumerge al usuario en un entorno virtual'},
+    {w:'HOLOGRAFIA', c:'Técnica de imagen tridimensional con luz láser'},
+    {w:'SATELITE', c:'Objeto que orbita alrededor de un planeta'},
+    {w:'CRIPTOMONEDA', c:'Moneda digital descentralizada basada en blockchain'},
+    {w:'METAVERSO', c:'Mundo virtual persistente de interacción social'},
+    {w:'QUANTUM', c:'Computación que usa principios de mecánica cuántica'},
+  ],
+  chilenismos: [
+    {w:'CAHUIN', c:'Chisme o lío entre personas en Chile'},
+    {w:'POLOLO', c:'Novio o pareja en Chile'},
+    {w:'FOME', c:'Aburrido o sin gracia en Chile'},
+    {w:'ONCE', c:'Merienda con té y pan a las 6 de la tarde'},
+    {w:'ALTIRO', c:'Inmediatamente enseguida en Chile'},
+    {w:'BACAN', c:'Algo muy bueno o genial en Chile'},
+    {w:'CUATICO', c:'Algo raro exagerado o increíble en Chile'},
+    {w:'CHELA', c:'Cerveza en el habla coloquial chilena'},
+    {w:'TACO', c:'Atasco de tráfico en Santiago'},
+    {w:'POLOLEAR', c:'Tener pareja o andar de novios en Chile'},
+    {w:'CALUGA', c:'Caramelo blando muy popular en Chile'},
+    {w:'LUCA', c:'Billete de mil pesos chilenos'},
+    {w:'PALO', c:'Billete de cien mil pesos en Chile'},
+    {w:'GAMBA', c:'Billete de cien pesos en Chile'},
+    {w:'PENCA', c:'Algo de mala calidad o decepcionante en Chile'},
+    {w:'LATERO', c:'Algo muy aburrido que cansa en exceso'},
+    {w:'FILETE', c:'Algo muy bueno o de primera calidad en Chile'},
+    {w:'CACHA', c:'Entender o darse cuenta de algo en Chile'},
+    {w:'CUICO', c:'Persona de clase alta con actitud snob en Chile'},
+    {w:'ROTO', c:'Persona del pueblo en la cultura popular chilena'},
+    {w:'COPETE', c:'Trago o bebida alcohólica en Chile'},
+    {w:'CARRETE', c:'Fiesta o junta de amigos en Chile'},
+    {w:'HUACHO', c:'Persona sola sin familia o de origen humilde'},
+    {w:'ACHUNTAR', c:'Acertar o dar en el clavo en Chile'},
+    {w:'CACHAR', c:'Entender o notar algo en el habla chilena'},
+    {w:'PILLAR', c:'Sorprender o descubrir a alguien en algo'},
+    {w:'PELAR', c:'Hablar mal de alguien a sus espaldas en Chile'},
+    {w:'TALLA', c:'Broma o chiste en el habla chilena'},
+    {w:'CHORO', c:'Valiente o audaz en el habla chilena'},
+    {w:'GALLETA', c:'Cachetada o golpe en la cara en Chile'},
+    {w:'PITUTO', c:'Contacto o influencia para conseguir algo'},
+    {w:'CUNA', c:'Recomendación personal para conseguir trabajo'},
+    {w:'MECHON', c:'Estudiante universitario de primer año en Chile'},
+    {w:'FERIA', c:'Mercado al aire libre de frutas y verduras'},
+    {w:'CHURRASCO', c:'Sándwich de carne asada típico chileno'},
+    {w:'COMPLETO', c:'Sándwich chileno con vienesa mayo y tomate'},
+    {w:'LOMITO', c:'Sándwich de lomo de cerdo típico chileno'},
+    {w:'BORGONA', c:'Trago chileno de vino tinto con frutillas'},
+    {w:'TERREMOTO', c:'Trago chileno de vino blanco con helado de piña'},
+    {w:'PISCOLA', c:'Trago chileno de pisco con cola'},
+    {w:'CHICHA', c:'Bebida fermentada de uva típica de las fiestas'},
+    {w:'VOLATIN', c:'Cometa de papel que se eleva con el viento'},
+    {w:'LUCHE', c:'Juego infantil chileno que se juega saltando'},
+    {w:'PILLARSE', c:'Enamorarse o ponerse de acuerdo en Chile'},
+    {w:'APERRAR', c:'Esforzarse o comprometerse con algo en Chile'},
+    {w:'CHANTEAR', c:'Hablar con alguien con intenciones románticas'},
+    {w:'POLLERUDO', c:'Persona dominada por su pareja en Chile'},
+    {w:'CURADO', c:'Persona que está ebria o borracha en Chile'},
+    {w:'TOMADO', c:'Persona bajo los efectos del alcohol en Chile'},
+    {w:'RESACA', c:'Malestar del día siguiente de tomar alcohol'},
+    {w:'GUAYABO', c:'Resaca o malestar por exceso de alcohol en Chile'},
+    {w:'CHOCLON', c:'Grupo grande de personas reunidas en un lugar'},
+    {w:'PEINAR', c:'Ignorar o hacer caso omiso a alguien en Chile'},
+    {w:'WEON', c:'Término chileno de uso universal insulto cariño o muletilla'},
+    {w:'WEONA', c:'Versión femenina del término weon en Chile'},
+    {w:'WEA', c:'Cosa o asunto indefinido en el habla cotidiana chilena'},
+    {w:'WEVADA', c:'Cosa asunto o situación cualquiera en Chile'},
+    {w:'AWEONADO', c:'Persona tonta o que actuó mal en Chile'},
+    {w:'AWEONADA', c:'Versión femenina de aweonado en Chile'},
+    {w:'WEONEAR', c:'Hacer tonterías o perder el tiempo en Chile'},
+    {w:'AWEONAR', c:'Confundir engañar o molestar a alguien en Chile'},
+    {w:'WEONERIA', c:'Tontería o acto estúpido en el habla chilena'},
+    {w:'WEONAZO', c:'Versión aumentativa de weon puede ser insulto o halago'},
+    {w:'WEONUDA', c:'Persona que actúa de forma tonta repetidamente'},
+    {w:'WEONCITO', c:'Versión diminutiva y cariñosa de weon en Chile'},
+    {w:'WEONCITA', c:'Versión femenina diminutiva y cariñosa en Chile'},
+    {w:'CANA', c:'Cárcel o prisión en el coa chileno'},
+    {w:'CANUTO', c:'Persona evangélica o que no toma en Chile'},
+    {w:'MECHERO', c:'Ladrón que roba en tiendas disimuladamente'},
+    {w:'COGOTERO', c:'Ladrón que asalta por la fuerza en la calle'},
+    {w:'FLAITE', c:'Persona de modales vulgares o de mal vivir en Chile'},
+    {w:'GALLINERO', c:'Cárcel o lugar donde hay muchos presos en el coa'},
+    {w:'PACOS', c:'Carabineros o policías en el habla chilena'},
+    {w:'TIRA', c:'Detective o policía de civil en Chile'},
+    {w:'TOMBOS', c:'Policías en el lenguaje del coa chileno'},
+    {w:'YUTA', c:'Policía o carabinero en el coa chileno'},
+    {w:'BUCHON', c:'Persona que delata o acusa a otros en Chile'},
+    {w:'SAPEAR', c:'Delatar o acusar a alguien en Chile'},
+    {w:'SAPO', c:'Persona que delata o espía a otros en Chile'},
+    {w:'CARNADA', c:'Persona usada como señuelo en un delito'},
+    {w:'CAMPANA', c:'Persona que vigila mientras otros roban'},
+    {w:'VOLARSE', c:'Escapar o huir rápidamente en el coa chileno'},
+    {w:'CAGARSE', c:'Asustarse mucho o rajarse ante algo en Chile'},
+    {w:'FIERRO', c:'Arma en general en el habla popular chilena'},
+    {w:'LANZA', c:'Ladrón hábil especialmente de bolsillos en Chile'},
+    {w:'TRANSA', c:'Persona que vende droga en Chile'},
+    {w:'QUEMARSE', c:'Ser descubierto o delatado en el coa chileno'},
+    {w:'CAERSE', c:'Ser detenido por la policía en Chile'},
+    {w:'DOBLAR', c:'Robar o engañar a alguien en el coa chileno'},
+    {w:'FONDEAR', c:'Esconder algo robado o ilegal en Chile'},
+    {w:'PARAR', c:'Estar atento o en guardia en el coa chileno'},
+    {w:'ARRANCAR', c:'Huir corriendo de una situación en Chile'},
+    {w:'FUMADO', c:'Persona bajo efectos de la marihuana en Chile'},
+    {w:'VOLADO', c:'Persona muy distraída o en las nubes en Chile'},
+    {w:'TOSTADO', c:'Persona bajo efectos de la marihuana en Chile'},
+    {w:'COLOCADO', c:'Persona bajo efectos de alguna droga en Chile'},
+    {w:'PORRO', c:'Cigarrillo de marihuana en el habla chilena'},
+    {w:'PASTA', c:'Pasta base droga muy destructiva en Chile'},
+    {w:'COPUCHA', c:'Chisme o meterse en asuntos ajenos en Chile'},
+    {w:'COPUCHENTO', c:'Persona chismosa o metiche en Chile'},
+    {w:'JAIBA', c:'Persona aprovechadora o viva en Chile'},
+    {w:'VIVO', c:'Persona astuta que saca ventaja de todo en Chile'},
+    {w:'GANSO', c:'Persona tonta o ingenua en Chile'},
+    {w:'GIL', c:'Persona ingenua o fácil de engañar en Chile'},
+    {w:'OTARIO', c:'Persona tonta o que se deja engañar en Chile'},
+    {w:'PESADO', c:'Persona molesta o difícil de tratar en Chile'},
+    {w:'CREIDO', c:'Persona engreída o arrogante en Chile'},
+    {w:'AGRANDADO', c:'Persona que se cree más de lo que es en Chile'},
+    {w:'MATEO', c:'Estudiante muy aplicado y estudioso en Chile'},
+    {w:'QUEDADO', c:'Persona lenta o que no capta rápido en Chile'},
+    {w:'CHANCHO', c:'Persona sucia o glotona en Chile'},
+    {w:'COCHINO', c:'Persona sucia o de malos modales en Chile'},
+    {w:'PULENTO', c:'Algo muy bueno o de excelente calidad en Chile'},
+    {w:'FIRME', c:'Algo seguro o de buena calidad en Chile'},
+    {w:'PLOP', c:'Expresión de sorpresa o decepción en Chile'},
+    {w:'SECO', c:'Persona muy hábil o experta en algo en Chile'},
+  ],
+};
+</script>
+<script>
+
+// Categorías disponibles
+const CATS = [
+  {key:'chile',    title:'🇨🇱 Chile Total',    size:10, count:6},
+  {key:'animales', title:'🐾 Animales',         size:10, count:6},
+  {key:'ciencia',  title:'🔬 Ciencia',          size:10, count:6},
+  {key:'historia', title:'🏛️ Historia',         size:10, count:6},
+  {key:'peliculas',title:'🎬 Películas',         size:10, count:6},
+  {key:'musica',   title:'🎵 Música',            size:10, count:6},
+  {key:'tecnologia',title:'💻 Tecnología',      size:10, count:6},
+  {key:'chilenismos',title:'🇨🇱 Chilenismos',    size:10, count:6},
+];
+
+// Palabras ya usadas por categoría (para no repetir)
+const usedWords = {};
+
+function getRandomWords(catKey, count) {
+  const pool = WORD_DB[catKey];
+  if(!pool || pool.length === 0) {
+    console.error('No pool for category:', catKey);
+    return [{word:'ERROR', clue:'Categoría no encontrada'}];
+  }
+  if(!usedWords[catKey]) usedWords[catKey] = new Set();
+  const used = usedWords[catKey];
+  if(used.size >= pool.length - count) used.clear();
+  const available = pool.filter((_,i) => !used.has(i));
+  const shuffled = [...available].sort(() => Math.random() - 0.5).slice(0, count);
+  shuffled.forEach(item => {
+    const idx = pool.indexOf(item);
+    if(idx >= 0) used.add(idx);
+  });
+  return shuffled.map(item => ({word: item.w, clue: item.c}));
+}
+
+function buildRound(catIdx) {
+  const cat = CATS[catIdx];
+  return {
+    title: cat.title,
+    size: cat.size,
+    words: getRandomWords(cat.key, cat.count)
+  };
+}
+
+const COLORS=['#43e07a','#4cc9f0','#f9c74f','#f8961e','#b5179e','#ff6b6b'];
+const DIRS=[[0,1],[1,0],[1,1],[0,-1],[-1,0],[-1,-1],[1,-1],[-1,1]];
+
+let rIdx=0, round=null, grid=[], gridSize=10;
+let placedWords=[], foundWords=[], currentWordIdx=0, score=0;
+
+// Hint state
+let hintLevel = 0; // 0=sin usar, 1=inicio, 2=dirección, 3=revelada
+
+function useHint() {
+  const currentWord = round.words[currentWordIdx].word;
+  const pw = placedWords.find(p => p.word === currentWord);
+  if(!pw) return;
+
+  hintLevel++;
+
+  // Limpiar hints anteriores
+  document.querySelectorAll('.gcell.hint-start, .gcell.hint-dir').forEach(el => {
+    el.classList.remove('hint-start','hint-dir');
+  });
+
+  if(hintLevel === 1) {
+    // Mostrar celda de inicio en naranja
+    const startCell = pw.cells[0];
+    const el = getGCell(startCell.r, startCell.c);
+    if(el) el.classList.add('hint-start');
+    score = Math.max(0, score - 25);
+    document.getElementById('score-val').textContent = score;
+    document.getElementById('hint-btn').innerHTML = '💡 <span id="hint-label">Dirección</span>';
+
+  } else if(hintLevel === 2) {
+    // Mostrar dirección con celdas semitransparentes
+    const startCell = pw.cells[0];
+    const el = getGCell(startCell.r, startCell.c);
+    if(el) el.classList.add('hint-start');
+    // Marcar las siguientes 2 celdas con hint-dir
+    pw.cells.slice(1, 3).forEach(({r,c}) => {
+      const cell = getGCell(r,c);
+      if(cell && !cell.className.includes('found')) cell.classList.add('hint-dir');
+    });
+    score = Math.max(0, score - 25);
+    document.getElementById('score-val').textContent = score;
+    document.getElementById('hint-btn').style.background = 'linear-gradient(135deg,#cc2244,#aa1133)';
+    document.getElementById('hint-btn').style.background = 'linear-gradient(135deg,#cc2244,#aa1133)';
+    document.getElementById('hint-btn').innerHTML = '🏳️ <span id="hint-label">Me rindo</span>';
+
+  } else if(hintLevel === 3) {
+    // Revelar palabra completa en gris
+    document.querySelectorAll('.gcell.hint-start, .gcell.hint-dir').forEach(el => {
+      el.classList.remove('hint-start','hint-dir');
+    });
+    pw.cells.forEach(({r,c}) => {
+      const el = getGCell(r,c);
+      if(el && !el.className.includes('found')) el.classList.add('hint-full');
+    });
+    document.getElementById('hint-btn').disabled = true;
+    document.getElementById('hint-btn').style.opacity = '0.4';
+    // Pasar a siguiente palabra después de 2 segundos
+    setTimeout(() => {
+      // Limpiar hint-full
+      document.querySelectorAll('.gcell.hint-full').forEach(el => el.classList.remove('hint-full'));
+      // Marcar como "saltada" sin puntos
+      foundWords.push({word: currentWord, color: '#888'});
+      updateFoundChips();
+      updateProg();
+      if(foundWords.length === round.words.length) { showWin(); return; }
+      currentWordIdx++;
+      hintLevel = 0;
+      updateClue();
+      resetHintBtn();
+    }, 2000);
+  }
+}
+
+function resetHintBtn() {
+  const btn = document.getElementById('hint-btn');
+  if(btn) {
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.style.background = 'linear-gradient(135deg,#ff8c00,#cc5500)';
+    btn.innerHTML = '💡 <span id="hint-label">Ayuda</span>';
+  }
+}
+
+// Drag state
+let dragFicha=null, dragOrigIdx=null;
+// Click-to-select state
+let clickedCells=[];
+// Drag-select state
+let isDragSelecting=false, dragStart=null, dragSel=[];
+
+function show(id) {
+  ['home','game','win'].forEach(i=>{
+    const el=document.getElementById(i);
+    if(el) el.style.display='none';
+  });
+  const t=document.getElementById(id);
+  if(t) {
+    t.style.display='flex';
+    t.style.flexDirection='column';
+    if(id==='game') {
+      t.style.height='100vh';
+      t.style.overflow='hidden';
+    } else {
+      t.style.minHeight='100vh';
+      t.style.overflowY='auto';
+    }
+  }
+}
+function goHome() { show('home'); }
+goHome();
+
+function loadRound(i) {
+  rIdx=i; round=buildRound(i); gridSize=round.size;
+  foundWords=[]; currentWordIdx=0; score=0; clickedCells=[]; hintLevel=0;
+  document.getElementById('round-title').textContent=round.title;
+  document.getElementById('score-val').textContent='0';
+  buildGrid();
+  renderFoundChips();
+  updateProg();
+  show('game');
+  requestAnimationFrame(()=>{
+    renderGrid();
+    updateClue();
+  });
+}
+
+// ---- BUILD GRID ----
+function buildGrid() {
+  grid=Array.from({length:gridSize},()=>Array(gridSize).fill(''));
+  placedWords=[];
+  for(const {word} of round.words) {
+    let placed=false, attempts=0;
+    while(!placed&&attempts<300) {
+      attempts++;
+      const dir=DIRS[Math.floor(Math.random()*DIRS.length)];
+      const sr=Math.floor(Math.random()*gridSize), sc=Math.floor(Math.random()*gridSize);
+      const cells=[]; let ok=true;
+      for(let k=0;k<word.length;k++) {
+        const r=sr+dir[0]*k, c=sc+dir[1]*k;
+        if(r<0||r>=gridSize||c<0||c>=gridSize){ok=false;break;}
+        if(grid[r][c]!==''&&grid[r][c]!==word[k]){ok=false;break;}
+        cells.push({r,c});
+      }
+      if(ok){cells.forEach(({r,c},k)=>grid[r][c]=word[k]); placedWords.push({word,cells}); placed=true;}
+    }
+  }
+  for(let r=0;r<gridSize;r++)
+    for(let c=0;c<gridSize;c++)
+      if(!grid[r][c]) grid[r][c]='ABCDEFGHIJKLMNOPQRSTUVWXYZ'[Math.floor(Math.random()*26)];
+}
+
+// ---- RENDER GRID ----
+function renderGrid() {
+  const container=document.getElementById('grid');
+  container.innerHTML='';
+  const wrap=document.querySelector('.grid-wrap');
+  const available=Math.min(wrap.clientWidth, wrap.clientHeight)-12;
+  const cellSize=Math.floor(available/gridSize);
+  const fontSize=Math.max(10,Math.floor(cellSize*0.52));
+  container.style.gridTemplateColumns=`repeat(${gridSize},${cellSize}px)`;
+  container.style.gap='2px';
+
+  for(let r=0;r<gridSize;r++) {
+    for(let c=0;c<gridSize;c++) {
+      const cell=document.createElement('div');
+      cell.className='gcell';
+      cell.style.cssText=`width:${cellSize}px;height:${cellSize}px;font-size:${fontSize}px`;
+      cell.textContent=grid[r][c];
+      cell.dataset.r=r; cell.dataset.c=c;
+      container.appendChild(cell);
+    }
+  }
+
+  // Events: click individual + drag select
+  container.addEventListener('pointerdown', onGridPointerDown);
+  container.addEventListener('pointermove', onGridPointerMove);
+  container.addEventListener('pointerup', onGridPointerUp);
+  container.setPointerCapture && null;
+}
+
+function getGCell(r,c){return document.querySelector(`#grid .gcell[data-r="${r}"][data-c="${c}"]`);}
+
+function onGridPointerDown(e) {
+  const cell=e.target.closest('.gcell'); if(!cell) return;
+  e.preventDefault();
+  const r=+cell.dataset.r, c=+cell.dataset.c;
+  // Start drag select
+  isDragSelecting=true;
+  dragStart={r,c};
+  dragSel=[{r,c}];
+  highlightDrag(dragSel);
+}
+
+function onGridPointerMove(e) {
+  if(!isDragSelecting) return;
+  e.preventDefault();
+  const el=document.elementFromPoint(e.clientX,e.clientY);
+  const cell=el&&el.closest('.gcell'); if(!cell) return;
+  const end={r:+cell.dataset.r, c:+cell.dataset.c};
+  dragSel=getLine(dragStart,end);
+  highlightDrag(dragSel);
+}
+
+function onGridPointerUp(e) {
+  if(!isDragSelecting) return;
+  isDragSelecting=false;
+  e.preventDefault();
+
+  // If only one cell clicked — toggle click selection
+  if(dragSel.length===1) {
+    handleCellClick(dragSel[0].r, dragSel[0].c);
+    clearDragHighlight(dragSel);
+  } else {
+    // Drag selection — check whole word
+    checkDragSel(dragSel);
+    clearDragHighlight(dragSel);
+  }
+  dragSel=[];
+}
+
+// --- CLICK MODE: seleccionar letra por letra ---
+function handleCellClick(r,c) {
+  const cell=getGCell(r,c);
+  if(!cell||cell.className.includes('found')) return;
+
+  const currentWord=round.words[currentWordIdx].word;
+
+  // Check if already clicked
+  const existingIdx=clickedCells.findIndex(cl=>cl.r===r&&cl.c===c);
+  if(existingIdx>=0) {
+    // Deselect
+    clickedCells.splice(existingIdx,1);
+    cell.classList.remove('clicked');
+    return;
+  }
+
+  // Add to clicked
+  clickedCells.push({r,c,letter:grid[r][c]});
+  cell.classList.add('clicked');
+
+  // Check if we have enough letters
+  if(clickedCells.length===currentWord.length) {
+    const typed=clickedCells.map(cl=>cl.letter).join('');
+    setTimeout(()=>checkClickWord(typed),150);
+  }
+}
+
+function checkClickWord(typed) {
+  const currentWord=round.words[currentWordIdx].word;
+  // Check if letters match (any order that forms the word)
+  const sortedTyped=[...typed].sort().join('');
+  const sortedWord=[...currentWord].sort().join('');
+
+  if(sortedTyped===sortedWord) {
+    // Find the placed word in grid
+    const pw=placedWords.find(p=>p.word===currentWord);
+    if(pw) {
+      // Check if clicked cells match placed cells
+      const clickedSet=new Set(clickedCells.map(cl=>`${cl.r},${cl.c}`));
+      const placedSet=new Set(pw.cells.map(({r,c})=>`${r},${c}`));
+      const matches=[...clickedSet].every(k=>placedSet.has(k));
+      if(matches) { wordFound(currentWord, pw); return; }
+    }
+  }
+  // Wrong — flash red and clear
+  clickedCells.forEach(({r,c})=>{
+    const el=getGCell(r,c);
+    if(el){el.classList.remove('clicked'); el.classList.add('wrong'); setTimeout(()=>el.classList.remove('wrong'),350);}
+  });
+  clickedCells=[];
+}
+
+// --- DRAG MODE ---
+function highlightDrag(cells) {
+  document.querySelectorAll('.gcell.selecting').forEach(el=>el.classList.remove('selecting'));
+  cells.forEach(({r,c})=>{
+    const el=getGCell(r,c);
+    if(el&&!el.className.includes('found')&&!el.className.includes('clicked')) el.classList.add('selecting');
+  });
+}
+function clearDragHighlight(cells) {
+  cells.forEach(({r,c})=>{ const el=getGCell(r,c); if(el) el.classList.remove('selecting'); });
+}
+
+function checkDragSel(cells) {
+  const currentWord=round.words[currentWordIdx].word;
+  const typed=cells.map(({r,c})=>grid[r][c]).join('');
+  const typedRev=typed.split('').reverse().join('');
+  if(typed===currentWord||typedRev===currentWord) {
+    const pw=placedWords.find(p=>p.word===currentWord);
+    if(pw) { wordFound(currentWord,pw); return; }
+  }
+  if(cells.length>1) {
+    cells.forEach(({r,c})=>{
+      const el=getGCell(r,c);
+      if(el&&!el.className.includes('found')){el.classList.add('wrong'); setTimeout(()=>el.classList.remove('wrong'),350);}
+    });
+  }
+}
+
+function getLine(s,e) {
+  const dr=e.r-s.r, dc=e.c-s.c, len=Math.max(Math.abs(dr),Math.abs(dc));
+  if(len===0) return [s];
+  if(dr!==0&&dc!==0&&Math.abs(dr)!==Math.abs(dc)) return [s];
+  const sr2=dr===0?0:dr/Math.abs(dr), sc2=dc===0?0:dc/Math.abs(dc);
+  return Array.from({length:len+1},(_,i)=>({r:s.r+sr2*i,c:s.c+sc2*i}));
+}
+
+// ---- WORD FOUND ----
+function wordFound(word, pw) {
+  clickedCells=[];
+  const colorIdx=foundWords.length%COLORS.length;
+  pw.cells.forEach(({r,c})=>{
+    const el=getGCell(r,c);
+    if(el){el.className=`gcell found-${colorIdx}`;}
+  });
+  // Mark order cells correct
+  document.querySelectorAll('.ocell').forEach(el=>el.classList.add('correct-word'));
+  foundWords.push({word,color:COLORS[colorIdx]});
+  score+=100;
+  document.getElementById('score-val').textContent=score;
+  updateFoundChips();
+  updateProg();
+  if(foundWords.length===round.words.length){setTimeout(showWin,700); return;}
+  currentWordIdx++;
+  setTimeout(updateClue,500);
+}
+
+// ---- CLUE & FICHAS ----
+function updateClue() {
+  const w=round.words[currentWordIdx];
+  document.getElementById('clue-num').textContent=currentWordIdx+1;
+  document.getElementById('clue-text').textContent=w.clue;
+  clickedCells=[];
+
+  // Fichas desordenadas
+  const shuffled=w.word.split('').sort(()=>Math.random()-0.5);
+  const sa=document.getElementById('shuffle-area');
+  sa.innerHTML='';
+  shuffled.forEach((letter,i)=>{
+    const ficha=document.createElement('div');
+    ficha.className='ficha';
+    ficha.textContent=letter;
+    ficha.dataset.idx=i;
+    ficha.dataset.letter=letter;
+    ficha.dataset.fichaId='f'+currentWordIdx+'_'+i;
+    ficha.setAttribute('data-ficha-id','f'+currentWordIdx+'_'+i);
+    ficha.addEventListener('pointerdown', onFichaDown);
+    sa.appendChild(ficha);
+  });
+
+  // Celdas de orden vacías
+  const oc=document.getElementById('order-cells');
+  oc.innerHTML='';
+  for(let i=0;i<w.word.length;i++){
+    const cell=document.createElement('div');
+    cell.className='ocell';
+    cell.dataset.pos=i;
+    cell.addEventListener('pointerup', onOcellDrop);
+    cell.addEventListener('click', onOcellClick);
+    oc.appendChild(cell);
+  }
+}
+
+// ---- FICHA DRAG ----
+let fichaGhost=null;
+function onFichaDown(e) {
+  e.preventDefault();
+  dragFicha=e.currentTarget;
+  dragOrigIdx=dragFicha.dataset.idx;
+
+  // Create ghost
+  fichaGhost=document.createElement('div');
+  fichaGhost.className='ficha';
+  fichaGhost.textContent=dragFicha.textContent;
+  fichaGhost.style.cssText='position:fixed;pointer-events:none;opacity:0.9;z-index:999;transform:scale(1.2);';
+  document.body.appendChild(fichaGhost);
+  moveFichaGhost(e);
+
+  dragFicha.classList.add('dragging');
+  document.addEventListener('pointermove', onFichaMove);
+  document.addEventListener('pointerup', onFichaUp);
+}
+function moveFichaGhost(e) {
+  if(!fichaGhost) return;
+  fichaGhost.style.left=(e.clientX-20)+'px';
+  fichaGhost.style.top=(e.clientY-22)+'px';
+}
+function onFichaMove(e) {
+  moveFichaGhost(e);
+  // Highlight drop target
+  document.querySelectorAll('.ocell.drop-over').forEach(el=>el.classList.remove('drop-over'));
+  const el=document.elementFromPoint(e.clientX,e.clientY);
+  if(el&&el.classList.contains('ocell')) el.classList.add('drop-over');
+}
+function onFichaUp(e) {
+  document.removeEventListener('pointermove',onFichaMove);
+  document.removeEventListener('pointerup',onFichaUp);
+  document.querySelectorAll('.ocell.drop-over').forEach(el=>el.classList.remove('drop-over'));
+  if(fichaGhost){fichaGhost.remove();fichaGhost=null;}
+  if(!dragFicha) return;
+
+  const el=document.elementFromPoint(e.clientX,e.clientY);
+  if(el&&el.classList.contains('ocell')) {
+    dropFichaOnCell(dragFicha, el);
+  }
+  dragFicha.classList.remove('dragging');
+  dragFicha=null;
+}
+function dropFichaOnCell(ficha, ocell) {
+  const letter=ficha.dataset.letter;
+  const fichaId=ficha.dataset.fichaId;
+  // If cell already has a letter, return that ficha first
+  if(ocell.dataset.fichaId) {
+    const prevId=ocell.dataset.fichaId;
+    const prevFicha=document.querySelector(`.ficha[data-ficha-id="${prevId}"]`);
+    if(prevFicha){ prevFicha.classList.remove('used'); delete prevFicha.dataset.usedInPos; }
+  }
+  ocell.textContent=letter;
+  ocell.dataset.letter=letter;
+  ocell.dataset.fichaId=fichaId;
+  ocell.classList.add('filled');
+  ficha.classList.add('used');
+  ficha.dataset.usedInPos=ocell.dataset.pos;
+}
+function onOcellClick(e) {
+  const ocell=e.currentTarget;
+  if(!ocell.dataset.fichaId) return;
+  const fichaId=ocell.dataset.fichaId;
+  const ficha=document.querySelector(`.ficha[data-ficha-id="${fichaId}"]`);
+  if(ficha){ ficha.classList.remove('used'); delete ficha.dataset.usedInPos; }
+  ocell.textContent='';
+  delete ocell.dataset.letter;
+  delete ocell.dataset.fichaId;
+  ocell.classList.remove('filled');
+}
+function onOcellDrop(e) { /* handled by onFichaUp */ }
+
+// ---- FOUND CHIPS ----
+function renderFoundChips() {
+  const fc=document.getElementById('found-chips'); fc.innerHTML='';
+  round.words.forEach((_,i)=>{
+    const chip=document.createElement('div');
+    chip.className='found-chip'; chip.id='chip'+i; fc.appendChild(chip);
+  });
+}
+function updateFoundChips() {
+  foundWords.forEach(({word,color},i)=>{
+    const chip=document.getElementById('chip'+i);
+    if(chip){chip.textContent=word; chip.style.background=color; chip.style.color='#fff'; chip.classList.add('visible');}
+  });
+}
+
+function updateProg() {
+  document.getElementById('prog').style.width=(foundWords.length/round.words.length*100)+'%';
+}
+
+function showWin() {
+  document.getElementById('win-pts').textContent=score;
+  document.getElementById('win-cnt').textContent=foundWords.length;
+  const ww=document.getElementById('win-words'); ww.innerHTML='';
+  foundWords.forEach(({word,color})=>{
+    const d=document.createElement('div'); d.className='win-word';
+    d.style.background=color; d.style.color='#fff'; d.textContent=word; ww.appendChild(d);
+  });
+  show('win');
+}
+
+</script>
+</body>
+</html>
